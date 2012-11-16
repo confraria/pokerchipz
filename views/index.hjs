@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>{{ title }}</title>
+    <title>Pokerchipz</title>
+    <link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
     <link rel='stylesheet' href='/stylesheets/style.css' />
-    <script src="/socket.io/socket.io.js"></script>
-<script>
-  var socket = io.connect('/');
-  socket.on('news', function (data) {
-    console.log(data);
-    socket.emit('my other event', { my: 'data' });
-  });
-</script>
   </head>
-  <body>
-    <h1>{{ title }}</h1>
-    <p>Welcome to {{ title }}</p>
-    <a href="/newgame">Create new game</a>
-    {{#gameid}}
-    <img src="http://chart.apis.google.com/chart?cht=qr&chs=300x300&chl=http%3A//176.78.12.102%3A3000/{{gameid}}">
-    {{/gameid}}
+  <body {{#gameid}}class="game"{{/gameid}}>
+    <h1 class="title">Pokerchipz - Virtual poker chips for smartphones</h1>
+    <div class="splash">
+      {{^gameid}}
+      <span class="tagline">Want to play poker and don’t  have chips? Grab your deck, and bet with your smartphone.</span>
+      <a href="/newgame" class="action">Create new game</a>
+      {{/gameid}}
+      {{#gameid}}
+      
+      <span class="qr"><img src="http://chart.apis.google.com/chart?cht=qr&chs=200x200&chl={{url}}" class="qrcode">Join the table by scanning the QR code. Please start on the first dealer and continue clockwise <br style="clear:both;height:0"></span>
+      {{/gameid}}
+      
+    </div>
+    
+    
+    
   </body>
 </html>

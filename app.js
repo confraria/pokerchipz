@@ -8,9 +8,19 @@ var express = require('express'),
     http = require('http'),
     path = require('path'),
     io = require('socket.io'),
-    game = require('./game');
+    game = require('./game'),
+    nib = require('nib'),
+    stylus = require('stylus');
 
 var app = express();
+
+function styluscompile(str, path) {
+  return stylus(str)
+    .set('filename', path)
+    .set('compress', true)
+    .use(nib());
+}
+
 
 app.configure(function(){
     app.set('port', process.env.PORT || 3000);
@@ -21,7 +31,10 @@ app.configure(function(){
     app.use(express.bodyParser());
     app.use(express.methodOverride());
     app.use(app.router);
-    app.use(require('stylus').middleware(__dirname + '/public'));
+    app.use(stylus.middleware({
+        src: __dirname + '/public',
+        compile : styluscompile
+    }));
     app.use(express.static(path.join(__dirname, 'public')));
 });
 
@@ -43,7 +56,7 @@ sio.sockets.on('connection', function(socket){
     var playerCfg = socket.handshake.headers,
     currentGame = game.getGame(playerCfg.gameid),
     isPlayer = !!playerCfg.id;
-
+    
     if (isPlayer && currentGame) {
         if (!currentGame.sio) currentGame.sio = sio;
 
@@ -51,29 +64,29 @@ sio.sockets.on('connection', function(socket){
         playerCfg.game = currentGame;
         socket.player = currentGame.getOrCreatePlayer(playerCfg);
 
-        socket.on('startbet', function(data, fn) {
+        socket.on('startbet', function(data) {
             if (socket.player.isDealer()) {
-                fn("Betting Starting");
+                console.log("Betting Starting");
             } else {
-                fn("You're not the dealer.")
+                console.log("You're not the dealer.")
             }
         });
 
-        socket.on('setwinner', function(id, fn) {
+        socket.on('setwinner', function(id) {
             if (socket.player.isDealer()) {
-                fn("Winner Set");
+                console.log("Winner Set");
             } else {
-                fn("You're not the dealer.");
+                console.log("You're not the dealer.");
             }
         });
 
-        socket.on('action', function(data, fn) {
+        socket.on('action', function(data) {
             if (data.fold) {
-                fn('You folded');
+                socket.player.fold();
             }
 
             if (data.bet && !data.fold) {
-                fn('You betted '+data.bet);
+                socket.player.bet(data.bet);
             }
         });
     }

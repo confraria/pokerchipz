@@ -16,6 +16,24 @@ Player.prototype.getNextActivePlayer = function() {
     return this.game.getNextActivePlayer(this);
 };
 
+Player.prototype.bet = function(val) {
+    this.credits -= this.game.currentHand.bet(val, this);
+    return val;
+};
+
+Player.prototype.fold = function() {
+    this.game.currentHand.fold(this);
+    return val;
+};
+
+Player.prototype.win = function() {
+    this.game.currentHand.win(this);
+};
+
+Player.prototype.sendUpdate = function() {
+    this.socket.emit('update', this.game.getGameState());
+};
+
 exports.createPlayer = function(data) {
     return new Player(data);
 }

@@ -9,6 +9,7 @@
     "express": "3.0.3",
     "hjs": "*",
     "stylus": "*",
+    "nib" : "*",
     "node-uuid": "*",
     "socket.io": "*"
   }
