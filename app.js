@@ -41,15 +41,15 @@ var server = http.createServer(app).listen(app.get('port'), function(){
 var sio = io.listen(server);
 sio.sockets.on('connection', function(socket){
     var playerCfg = socket.handshake.headers,
-    currentGame = game.getGame(headers.gameid),
-    isPlayer = !!headers.id;
+    currentGame = game.getGame(playerCfg.gameid),
+    isPlayer = !!playerCfg.id;
 
     if (isPlayer && currentGame) {
         if (!currentGame.sio) currentGame.sio = sio;
 
         playerCfg.socket = socket;
         playerCfg.game = currentGame;
-        socket.player = currentGame.getOrCreatePlayer(headers);
+        socket.player = currentGame.getOrCreatePlayer(playerCfg);
 
         socket.on('startbet', function(data, fn) {
             if (socket.player.isDealer()) {
