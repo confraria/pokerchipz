@@ -39,6 +39,7 @@ a
   text-align:left
   font-size: 32px
   line-height:1.2em
+  margin: 0 auto
 
 .action
   font-size:45px
@@ -58,5 +59,73 @@ a
 .qrcode 
   float:left
   margin-right:20px
-  width: 200px
-  height:200px
+  width: 120px
+  height:120px
+  
+  transition: transform, box-shadow
+
+.qrcode.highlight
+  box-shadow: 0 0 40px rgba(0,0,0,0.6)
+  transform: scale(1.5)
+
+.listplayers
+  list-style:none
+
+.player
+  display:inline-block
+  width:150px
+  height:150px
+  background: #999
+  font-size:20px
+  position: relative
+  margin-right:5px
+  overflow:hidden
+  opacity:.6
+  vertical-align:top
+
+.player.betting
+  opacity:1
+
+.player span
+  display: block
+
+.player .totalbet 
+  font-size:30px
+  line-height: 50px
+  text-align:center
+  display:block;
+  height:50px
+.player .credits 
+  font-size:14px
+  color:#000
+
+.player .info 
+  position: absolute
+  bottom:0
+  left:0
+  right:0
+  padding:3px
+  font-size: 12px
+
+.player .dealer
+  background-color:#1A6C00
+
+.player .fold
+  background-color:#F21137
+  color: #FFF
+
+.player.fold 
+  opacity: .2
+
+.notify
+  position: fixed
+  top: 0
+  left:0
+  right:0
+  height:50px
+  padding: 20px
+  background-color:#333
+  color:#EEE
+  font-size:42px;
+
+

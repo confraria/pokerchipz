@@ -32,29 +32,30 @@ Game.prototype.getGameState = function() {
     var state = {};
     state.smallblind = BLINDS[this.blindLevel];
     state.bigblind = BLINDS[this.blindLevel]*2;
-    state.bet = (this.currentHand && this.currentHand.bet) ? this.currentHand.bet.id : null;
+    state.bet = (this.currentHand && this.currentHand.better) ? this.currentHand.better.id : null;
     state.dealer = (this.dealer && this.dealer.id) || null;
     state.gamestatus = this.status;
-    state.players = this.getActivePlayers().map(function(p) {
+    state.players = this.playersStack.map(function(p) {
         return {
             id : p.id,
             name : p.name,
             credits : p.credits,
-            totalBet : p.totalBet
+            totalBet : p.totalBet,
+            fold : p.folded
         }
     });
     state.pot = (this.currentHand && this.currentHand.pot) || null;
+    state.maxbet = (this.currentHand && this.currentHand.maxbet) || null;
     
     return state;
 };
 
 Game.prototype.startBet = function() {
     if (this.currentHand) {
-        this.currentBet.startBet();
+        this.currentHand.startBet();
         return;
     }
-
-    this.currentHand = new Hand({ game: this });
+    this.nextHand(true);
 };
 
 Game.prototype.addPlayer = function(cfg) {
@@ -62,8 +63,9 @@ Game.prototype.addPlayer = function(cfg) {
     var currentPlayer = player.createPlayer(cfg);
     this.players[cfg.id] = currentPlayer;
     this.playersStack.push(currentPlayer);
-    console.log("Added user id " + cfg.id);
-    console.log('Existem '+ Object.keys(this.players).length + " jogadores");
+    if (this.playersStack.length == 1) {
+        this.dealer = currentPlayer;
+    }
     this.sendUpdate()
     return currentPlayer;
 }
@@ -90,47 +92,42 @@ Game.prototype.getNextActivePlayer = function(player) {
     return ((nextPlayer === player) ? null : nextPlayer);
 };
 
-Game.prototype.notify = function(io, msg) {
-    this.sio.socket.in(this.id).emit('notify', msg);
+Game.prototype.notify = function(msg) {
+    this.sio.sockets.in(this.id).emit('notify', msg);
 }
 
 Game.prototype.sendUpdate = function(io) {
     this.sio.sockets.in(this.id).emit('update', this.getGameState());
 }
 
-Game.prototype.startPlay = function() {
-    var dealer = 0;
-    this.currentPlay = new Play({
-        dealer : dealer,
-        bblind : dealer + 1,
-        sblind : dealer + 2
-    });
-}
-
-Game.prototype.nextHand = function() {
+Game.prototype.nextHand = function(startnow) {
     this.prevHand = this.currentHand;
-    this.dealer = this.prevHand ? this.getNextActivePlayer(this.prevHand.dealer) : this.getActivePlayers()[0];
+    this.dealer = this.prevHand ? this.getNextActivePlayer(this.prevHand.dealer) : this.dealer;
     this.status = READYTOBET;
-    if (this.nrhands % BLINDINCREMENT === 0) this.blindLevel++;
-    if (blindLevel >= BLINDS.length) this.blindLevel = BLINDS.length-1;
+    if ((this.nrhands % BLINDINCREMENT === 0) && this.nrhands) this.blindLevel++;
+    if (this.blindLevel >= BLINDS.length) this.blindLevel = BLINDS.length-1;
+    this.currentHand = new Hand({game:this});
+    if (startnow) this.currentHand.startBet();
     this.sendUpdate();
 };
 
 var Hand = function(cfg) {
+    this.game = cfg.game;
+    this.cleanPlayers();
     this.pot = 0;
     this.maxbet = 0;
     this.betRound = 0;
-    this.game = cfg.game;
     this.players = this.game.getActivePlayers();
     this.sblind = this.game.getNextActivePlayer(this.game.dealer);
     this.bblind = this.game.getNextActivePlayer(this.sblind);
+    this.dealer =  this.game.dealer;
     this.game.nrhands++;
-    this.cleanPlayers();
 }
 
 Hand.prototype.cleanPlayers = function() {
     this.game.playersStack.forEach(function(p) {
         p.totalBet = undefined;
+        p.folded = undefined;
     });
 };
 
@@ -138,64 +135,81 @@ Hand.prototype.placeBlinds = function(first_argument) {
     var sblindValue = BLINDS[this.game.blindLevel],
         bblindValue = sblindValue*2;
 
-    this.pot += this.sblind.bet(sblindValue);
-    this.pot += this.bblindValue.bet(bblindValue);
-    this.maxbet = bblindValue;
+    this.sblind.bet(sblindValue, true);
+    this.bblind.bet(bblindValue, true);
 }
 
 Hand.prototype.notifyBet = function() {
-    this.bet.socket.send('msg', 'Your turn to bet');
+    this.better && this.better.socket.emit('notify', 'Your turn to bet');
     this.game.sendUpdate();
 }
 
-Hand.prototype.bet = function(player, val) {
+Hand.prototype.bet = function(player, val, force) {
+    if (!force && (player != this.better)) {
+        player.socket.emit('notify', 'Not your turn to bet');
+        return;
+    }
     if (player.totalBet === undefined) player.totalBet = 0;
-
+    console.log("HANDBET", val);
+    console.log((player.totalBet + val) >= this.maxbet);
     if ((player.totalBet + val) >= this.maxbet) {
+        player.credits -= val;
+        player.totalBet += val;
         this.pot += val;
-        this.maxbet = (player.totalBet + val);
-        this.setupNextBet();
-        return val;
+        this.maxbet = player.totalBet;
+        this.game.notify(player.name + ' placed a bet for '+val);
+        if (!force) this.setupNextBet();
     } else {
-        player.socket.send('notify', 'That bet is not valid. Bet again.');
-        return 0;
+        player.socket.emit('notify', 'That bet is not valid. Bet again.');
     }
 }
 
 Hand.prototype.startBet = function() {
+    this.game.status = BETTING;
     if (this.betRound == 0) {
-        this.bet = this.game.getNextActivePlayer(this.bblind);  
+        this.better = this.game.getNextActivePlayer(this.bblind);
         this.placeBlinds();
         this.notifyBet();
     } else {
+        this.better = this.game.getNextActivePlayer(this.dealer);
         this.notifyBet();
     }
 };
 
-Hand.prototype.fold = function() {
-    this.gameSendUpdate();
+Hand.prototype.fold = function(player) {
+    player.folded = true
+    player.notify('You folded');
+    this.game.notify(player.name +" folded");
+    this.game.sendUpdate();
     this.setupNextBet();
 };
 
 Hand.prototype.setupNextBet = function() {
-    if (this.games.status === BETTING && this.allBetsBalanced()) {
-        this.games.status = READYTOBET;
+    if (this.game.status === BETTING && this.allBetsBalanced()) {
+        this.game.status = READYTOBET;
         this.betRound++;
         
-        if (this.betRound == BETROUNDS || (this.game.getActivePlayers() > 1)) {
+        if ((this.betRound === BETROUNDS) || (this.getPlayersInHand().length === 1)) {
             this.close();
             return;
         }
 
-        this.bet = this.game.getNextActivePlayer(this.dealer);
+        this.better = null;
     } else {
-        this.bet = this.game.getNextActivePlayer(this.bet);
-        this.notifyBet();
+        this.better = this.game.getNextActivePlayer(this.better);
     }
+    this.notifyBet();
+};
+
+Hand.prototype.getPlayersInHand = function() {
+    var players = this.game.getActivePlayers();
+    return players.filter(function(player) {
+        return !player.folded;
+    });
 };
 
 Hand.prototype.allBetsBalanced = function() {
-    var players = this.game.getActivePlayers(),
+    var players = this.getPlayersInHand(),
         balanced = true,
         maxbet = this.maxbet;
 
@@ -211,11 +225,16 @@ Hand.prototype.allBetsBalanced = function() {
 
 Hand.prototype.close = function() {
     this.game.status = SETUP;
-    var players = this.game.getActivePlayers();
+    var players = this.getPlayersInHand();
     if (players.length == 1) {
-        this.win(player);
+        this.win(players[0]);
     } else {
-        players.map
+        players = players.map(function(p) {
+            return {
+                id : p.id,
+                name : p.name
+            }
+        });
         this.dealer.socket.emit('endhand', {players: players});
     }
 };
@@ -223,7 +242,9 @@ Hand.prototype.close = function() {
 Hand.prototype.win = function(player) {
     player.credits += this.pot;
     player.socket.emit('notify', 'You won the pot');
-    player.socket.notify(player.name + " won the pot");
+    player.notify(player.name + " won the pot");
+    this.cleanPlayers();
+    this.game.sendUpdate();
     this.game.nextHand();
 }
 

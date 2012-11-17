@@ -53,41 +53,52 @@ var server = http.createServer(app).listen(app.get('port'), function(){
 //Socket io
 var sio = io.listen(server);
 sio.sockets.on('connection', function(socket){
-    var playerCfg = socket.handshake.headers,
-    currentGame = game.getGame(playerCfg.gameid),
-    isPlayer = !!playerCfg.id;
-    
-    if (isPlayer && currentGame) {
-        if (!currentGame.sio) currentGame.sio = sio;
+    console.log("CONNECTION!!!");
+    socket.on('init', function(playerCfg) {
+        var currentGame = game.getGame(playerCfg.gameid),
+            isPlayer = !!playerCfg.id;
 
-        playerCfg.socket = socket;
-        playerCfg.game = currentGame;
-        socket.player = currentGame.getOrCreatePlayer(playerCfg);
+        console.log(playerCfg);
+        if (isPlayer && currentGame) {
+            if (!currentGame.sio) currentGame.sio = sio;
 
-        socket.on('startbet', function(data) {
-            if (socket.player.isDealer()) {
-                console.log("Betting Starting");
-            } else {
-                console.log("You're not the dealer.")
+            playerCfg.socket = socket;
+            playerCfg.game = currentGame;
+            socket.player = currentGame.getOrCreatePlayer(playerCfg);
+            socket.on('startbet', function(data) {
+                if (socket.player.isDealer()) {
+                    currentGame.startBet();
+                } else {
+                    socket.emit('notify', "You're not the dealer");
+                }
+            });
+
+            socket.on('setwinner', function(id) {
+                if (socket.player.isDealer()) {
+                    game.getGame(id).win();
+                } else {
+                    socket.emit('notify', "You're not the dealer");
+                }
+            });
+
+            socket.on('action', function(data) {
+                if (data.fold) {
+                    socket.player.fold();
+                }
+
+                if (data.bet && !data.fold) {
+                    socket.player.bet(data.bet);
+                }
+            });
+            socket.player.socket = socket;
+            socket.player.sendUpdate();
+        } else {
+            //dashboard
+            if (currentGame) {
+                socket.join(currentGame.id);
+                socket.emit('update', currentGame.getGameState());
             }
-        });
-
-        socket.on('setwinner', function(id) {
-            if (socket.player.isDealer()) {
-                console.log("Winner Set");
-            } else {
-                console.log("You're not the dealer.");
-            }
-        });
-
-        socket.on('action', function(data) {
-            if (data.fold) {
-                socket.player.fold();
-            }
-
-            if (data.bet && !data.fold) {
-                socket.player.bet(data.bet);
-            }
-        });
-    }
+            socket.emit('welcome', {data:1, datab:'ajsdhfkjad'});
+        }
+    });
 });

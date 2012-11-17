@@ -3,6 +3,11 @@
   <head>
     <title>Pokerchipz</title>
     <link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
+    {{#gameid}}
+    <script src="http://twitter.github.com/hogan.js/builds/2.0.0/hogan-2.0.0.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    {{/gameid}}
     <link rel='stylesheet' href='/stylesheets/style.css' />
   </head>
   <body {{#gameid}}class="game"{{/gameid}}>
@@ -14,11 +19,18 @@
       {{/gameid}}
       {{#gameid}}
       
-      <span class="qr"><img src="http://chart.apis.google.com/chart?cht=qr&chs=200x200&chl={{url}}" class="qrcode">Join the table by scanning the QR code. Please start on the first dealer and continue clockwise <br style="clear:both;height:0"></span>
+      <span class="qr"><img src="http://chart.apis.google.com/chart?cht=qr&chs=200x200&chl={{url}}" class="qrcode">Join the table by scanning the QR code. Please start with the first dealer and continue clockwise <br style="clear:both;height:0"></span>
       {{/gameid}}
       
     </div>
-    
+    {{#gameid}}
+    <ul class="listplayers">
+    </ul>
+    <script>
+    var gameid = "{{gameid}}";
+    </script>
+    <script src="/javascripts/main.js"></script>
+    {{/gameid}}
     
     
   </body>

@@ -16,14 +16,16 @@ Player.prototype.getNextActivePlayer = function() {
     return this.game.getNextActivePlayer(this);
 };
 
-Player.prototype.bet = function(val) {
-    this.credits -= this.game.currentHand.bet(val, this);
-    return val;
+Player.prototype.bet = function(val, supressnextbet) {
+    if (val > this.credits) {
+        this.socket.emit('notify', "Don't have enough credit to place that bet");
+        return;
+    }
+    this.game.currentHand.bet(this, val, supressnextbet);
 };
 
 Player.prototype.fold = function() {
     this.game.currentHand.fold(this);
-    return val;
 };
 
 Player.prototype.win = function() {
@@ -32,6 +34,10 @@ Player.prototype.win = function() {
 
 Player.prototype.sendUpdate = function() {
     this.socket.emit('update', this.game.getGameState());
+};
+
+Player.prototype.isDealer = function(first_argument) {
+    return this.game.dealer === this;
 };
 
 exports.createPlayer = function(data) {

@@ -19,7 +19,6 @@ exports.newgame = function(req, res) {
 exports.game = function(req, res) {
     var id = req.params.id;
     if (games.getGame(id)) {
-        console.log(req);
         res.render('index', { url: encodeURIComponent('http://'+req.headers.host+"/"+id),  gameid: id });
     } else {
         res.send(404, 'No game for you.');
