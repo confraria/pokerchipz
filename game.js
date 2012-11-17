@@ -35,6 +35,7 @@ Game.prototype.getGameState = function() {
     state.bet = (this.currentHand && this.currentHand.better) ? this.currentHand.better.id : null;
     state.dealer = (this.dealer && this.dealer.id) || null;
     state.gamestatus = this.status;
+    state.nrhands = this.nrhands;
     state.players = this.playersStack.map(function(p) {
         return {
             id : p.id,
@@ -65,6 +66,12 @@ Game.prototype.addPlayer = function(cfg) {
     this.playersStack.push(currentPlayer);
     if (this.playersStack.length == 1) {
         this.dealer = currentPlayer;
+    }
+
+    if (this.playersStack.length > 3) {
+        if (this.status === SETUP) {
+            this.status = READYTOBET;
+        }
     }
     this.sendUpdate()
     return currentPlayer;

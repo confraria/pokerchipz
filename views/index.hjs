@@ -18,7 +18,7 @@
       <a href="/newgame" class="action">Create new game</a>
       {{/gameid}}
       {{#gameid}}
-      
+      <a href="" class="hidesplash icon">⊗</a>
       <span class="qr"><img src="http://chart.apis.google.com/chart?cht=qr&chs=200x200&chl={{url}}" class="qrcode">Join the table by scanning the QR code. Please start with the first dealer and continue clockwise <br style="clear:both;height:0"></span>
       {{/gameid}}
       

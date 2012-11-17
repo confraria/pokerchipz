@@ -25,6 +25,12 @@ a
   width: 100%
   background:  linear-gradient(top, #1A6C00, #008C23)
   padding:30px 0
+  position: relative
+  transition: all 1s 1s
+
+.splash.hidden
+  height: 0
+  padding:0
 
 .qr, .tagline
   font-size: 28px
@@ -62,11 +68,11 @@ a
   width: 120px
   height:120px
   
-  transition: transform, box-shadow
+  transition: all .5s
 
 .qrcode.highlight
   box-shadow: 0 0 40px rgba(0,0,0,0.6)
-  transform: scale(1.5)
+  transform: scale(2.5) translateX(-35px);
 
 .listplayers
   list-style:none
@@ -78,25 +84,31 @@ a
   background: #999
   font-size:20px
   position: relative
-  margin-right:5px
+  margin-right:10px
+  margin-bottom:10px
   overflow:hidden
   opacity:.6
   vertical-align:top
+  border-radius: 100%
+  transform: all 1s
 
 .player.betting
   opacity:1
+  transform: scale(1.1)
+  box-shadow: 0 0 15px rgba(0,0,0,.4)
+
 
 .player span
   display: block
 
 .player .totalbet 
-  font-size:30px
-  line-height: 50px
+  font-size:36px
+  line-height: 65px
   text-align:center
   display:block;
   height:50px
 .player .credits 
-  font-size:14px
+  font-size:18px
   color:#000
 
 .player .info 
@@ -127,5 +139,50 @@ a
   background-color:#333
   color:#EEE
   font-size:42px;
+
+.icon 
+  font-size: 40px;
+  opacity: .6
+  text-decoration:none
+  color:#000
+
+.icon:hover
+  opacity: 1
+
+.hidesplash
+  position: absolute
+  right: 10px
+  top:-5px
+
+.gameinfo
+  list-style: none
+
+
+.gameinfo li
+  display: inline-block
+  position: relative
+  margin-right: -2px;
+  background: #1A6C00
+  border-radius: 50%
+  color:#FFF
+  height:100px;
+  width:100px;
+
+.gameinfo span
+  display: inline-block
+  width: 100px
+  left: 0
+  position: absolute
+
+.gameinfo .descr
+  top: 15px;
+  text-transform: uppercase
+  font-size:10px
+
+.gameinfo .nr
+  font-size:40px
+  position: absolute
+  bottom: 15px;
+
 
 
