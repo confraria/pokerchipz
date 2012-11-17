@@ -68,7 +68,7 @@ Game.prototype.addPlayer = function(cfg) {
         this.dealer = currentPlayer;
     }
 
-    if (this.playersStack.length > 3) {
+    if (this.playersStack.length >= 3) {
         if (this.status === SETUP) {
             this.status = READYTOBET;
         }
