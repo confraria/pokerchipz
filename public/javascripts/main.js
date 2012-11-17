@@ -68,7 +68,10 @@ $(function() {
             cursor   : 'pointer'
         });
         $('.splash').hide();
+    });
 
+    $('.splash .qrcode').on('click', function() {
+        $(this).addClass('highlight');
     });
 });
 
