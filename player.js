@@ -26,7 +26,6 @@ Player.prototype.bet = function(val, supressnextbet) {
 
 Player.prototype.fold = function() {
     this.game.currentHand.fold(this);
-    return val;
 };
 
 Player.prototype.win = function() {
