@@ -98,13 +98,13 @@ function simulateFold(ix, val) {
     socket.emit('action', {fold:true, bet: null});
 }
 
-function TestingBatch() {
+function TestingBatch(t) {
 
     var count = 0;
         cint = setInterval(function() {
             simulatePlayer(count);
             count++;
-            if (count > 5) {
+            if (count > t) {
                 clearInterval(cint);
             }
         },400);

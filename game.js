@@ -183,7 +183,11 @@ Hand.prototype.startBet = function() {
     }
 };
 
-Hand.prototype.fold = function(player) {
+Hand.prototype.fold = function(player, force) {
+    if (!force && (player != this.better)) {
+        player.socket.emit('notify', 'Not your turn to bet');
+        return;
+    }
     player.folded = true
     player.notify('You folded');
     this.game.notify(player.name +" folded");

@@ -16,12 +16,13 @@
       {{^gameid}}
       <span class="tagline">Want to play poker and don’t  have chips? Grab your deck, and bet with your smartphone.</span>
       <a href="/newgame" class="action">Create new game</a>
+      <a href="/PokerChipz.apk" style="display:inline-block;margin:20px;color:#FFF">Download .apk for Android</a>
       {{/gameid}}
       {{#gameid}}
       <a href="" class="hidesplash icon">⊗</a>
       <span class="qr"><img src="http://chart.apis.google.com/chart?cht=qr&chs=200x200&chl={{url}}" class="qrcode">Join the table by scanning the QR code. Please start with the first dealer and continue clockwise <br style="clear:both;height:0"></span>
       {{/gameid}}
-      
+
     </div>
     {{#gameid}}
     <ul class="listplayers">
@@ -31,7 +32,7 @@
     </script>
     <script src="/javascripts/main.js"></script>
     {{/gameid}}
-    
-    
+
+
   </body>
 </html>
